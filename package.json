@@ -19,8 +19,8 @@
     "dev:desktop": "node scripts/dev-desktop.mjs",
     "desktop": "electron .",
     "test:desktop": "node scripts/smoke-desktop.mjs",
-    "package": "npm run build && electron-builder --linux --dir",
-    "package:win": "npm run build && electron-builder --win portable"
+    "package": "npm run build && electron-builder --config electron-builder.config.cjs --linux --dir",
+    "package:win": "npm run build && electron-builder --config electron-builder.config.cjs --win portable"
   },
   "dependencies": {
     "react": "19.3.1",
