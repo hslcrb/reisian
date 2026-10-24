@@ -12,8 +12,8 @@ export default defineConfig(({ command }) => ({
         // srcdoc inherits its parent's CSP. Authorize only the exact shared runtime.
         const source = readFileSync(new URL('./src/runtime/site-runtime.js', import.meta.url), 'utf8').replace('export function mountSite()', 'function mountSite()') + '\nmountSite();';
         const hash = createHash('sha256').update(source).digest('base64');
-        const development = command === 'serve' ? " 'unsafe-inline'" : '';
-        return html.replace("script-src 'self';", `script-src 'self' 'sha256-${hash}'${development};`);
+        const scripts = command === 'serve' ? "script-src 'self' 'unsafe-inline';" : `script-src 'self' 'sha256-${hash}';`;
+        return html.replace("script-src 'self';", scripts);
       },
     },
   }],
