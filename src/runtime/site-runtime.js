@@ -43,20 +43,36 @@ export function mountSite() {
       event.preventDefault(); field.contentEditable = 'plaintext-only'; field.focus();
       const range = document.createRange(); range.selectNodeContents(field); const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
     });
-    document.addEventListener('paste', (event) => { const field = event.target.closest('[data-edit]'); if (field && field.isContentEditable) { event.preventDefault(); const text = event.clipboardData.getData('text/plain').slice(0,20000); document.execCommand('insertText', false, text); } });
+    document.addEventListener('paste', (event) => { const field = event.target.closest('[data-edit]'); if (field && field.isContentEditable) { event.preventDefault(); const text = event.clipboardData.getData('text/plain'); document.execCommand('insertText', false, text); } });
     document.addEventListener('focusout', (event) => {
       const field = event.target.closest('[data-edit]');
-      if (field && field.isContentEditable) { field.contentEditable = 'false'; const section = field.closest('[data-section-id]'); send({ type: 'reisian:edit', sectionId: section.dataset.sectionId, field: field.dataset.edit, value: field.innerText.slice(0, field.dataset.edit === 'body' ? 20000 : field.dataset.edit === 'title' ? 2000 : field.dataset.edit === 'eyebrow' ? 300 : 200) }); }
+      if (field && field.isContentEditable) { field.contentEditable = 'false'; const section = field.closest('[data-section-id]'); send({ type: 'reisian:edit', sectionId: section.dataset.sectionId, field: field.dataset.edit, value: field.innerText }); }
     });
     document.addEventListener('keydown', event => { if (event.target.isContentEditable && (event.key === 'Escape' || (event.key === 'Enter' && (event.metaKey || event.ctrlKey)))) { event.preventDefault(); event.target.blur(); } });
     addEventListener('message', (event) => {
       if (event.source !== window.parent || !event.data || typeof event.data !== 'object') return;
       const data = event.data;
+      if (data.type === 'reisian:flush' && typeof data.requestId === 'string' && data.requestId.length <= 100) {
+        const edits = Array.from(document.querySelectorAll('[data-edit][contenteditable]')).filter(field => field.isContentEditable && ['title','body','eyebrow','buttonLabel'].includes(field.dataset.edit)).map(field => ({sectionId:field.closest('[data-section-id]').dataset.sectionId,field:field.dataset.edit,value:field.innerText}));
+        send({type:'reisian:flushed', requestId:data.requestId, edits});
+      }
       if (data.type === 'reisian:select' && typeof data.sectionId === 'string') select(data.sectionId);
       if (data.type === 'reisian:scrollTo' && typeof data.sectionId === 'string') { const el = Array.from(document.querySelectorAll('[data-section-id]')).find(s => s.dataset.sectionId === data.sectionId); if (el) el.scrollIntoView({ behavior: paused ? 'instant' : 'smooth', block: 'center' }); }
       if (data.type === 'reisian:restoreScroll' && Number.isFinite(data.top)) scrollTo({ top: Math.max(0, data.top), behavior: 'instant' });
     });
   }
+  if (editor || body.dataset.mode === 'preview') document.addEventListener('keydown', event => {
+    const key = event.key.toLowerCase();
+    const typing = event.target.isContentEditable || !!event.target.closest('input,textarea,select');
+    let action = '';
+    if ((event.metaKey || event.ctrlKey) && key === 's') action = 'save';
+    else if (key === 'escape' && body.dataset.mode === 'preview') action = 'return-editor';
+    else if (!typing && (event.metaKey || event.ctrlKey) && key === 'z') action = event.shiftKey ? 'redo' : 'undo';
+    else if (!typing && (event.metaKey || event.ctrlKey) && key === 'y') action = 'redo';
+    else if (!typing && !event.metaKey && !event.ctrlKey && !event.altKey && key === 'p') action = 'preview';
+    else if (!typing && !event.metaKey && !event.ctrlKey && !event.altKey && key === 'a') action = 'insert';
+    if (action) { event.preventDefault(); send({type:'reisian:shortcut',action}); }
+  });
   if (body.dataset.mode === 'preview') document.addEventListener('click', event => {
     const link = event.target.closest('a'); if (!link) return;
     if (link.dataset.pageId) { event.preventDefault(); send({type:'reisian:navigate', pageId:link.dataset.pageId}); }
