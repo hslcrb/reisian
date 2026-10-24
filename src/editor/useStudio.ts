@@ -120,7 +120,7 @@ export function useStudio() {
     announce('Page removed. You can undo this.');
   };
   const loadProject = (next: Project) => {
-    setHistory(createHistory(next)); setPageId(next.pages[0].id); setSelectedId(next.pages[0].sections[0]?.id ?? null);
+    setHistory((current) => pushHistory(current, next)); setPageId(next.pages[0].id); setSelectedId(next.pages[0].sections[0]?.id ?? null);
     announce(`${next.name} is ready.`);
   };
   const undo = useCallback(() => { setHistory(undoHistory); }, []);

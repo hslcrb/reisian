@@ -1,9 +1,23 @@
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   base: './',
-  plugins: [react()],
+  plugins: [react(), {
+    name: 'reisian-runtime-csp',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        // srcdoc inherits its parent's CSP. Authorize only the exact shared runtime.
+        const source = readFileSync(new URL('./src/runtime/site-runtime.js', import.meta.url), 'utf8').replace('export function mountSite()', 'function mountSite()') + '\nmountSite();';
+        const hash = createHash('sha256').update(source).digest('base64');
+        const development = command === 'serve' ? " 'unsafe-inline'" : '';
+        return html.replace("script-src 'self';", `script-src 'self' 'sha256-${hash}'${development};`);
+      },
+    },
+  }],
   server: { host: '127.0.0.1', port: 5173, strictPort: true },
   build: { target: 'es2022' },
   test: { include: ['tests/**/*.test.ts'], environment: 'node' },
-});
+}));
