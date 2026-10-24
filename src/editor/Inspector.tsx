@@ -2,8 +2,10 @@ import { useRef, useState } from 'react';
 import { AlignLeft, AlignCenter, AlignRight, ArrowDown, ArrowUp, Copy, Eye, EyeOff, ImagePlus, Layers, SlidersHorizontal, Sparkles, Trash2, Type } from 'lucide-react';
 import type { Section } from '../core/types';
 import type { Studio } from './useStudio';
-import { ColorField, Field, IconButton, Slider } from './controls';
+import { ColorField, Field, IconButton, Slider, ValidatedInput } from './controls';
+import { safeHref } from '../core/model';
 import { contrastRatio } from '../core/audit';
+import { CollectionEditor } from './CollectionEditor';
 
 export function Inspector({ studio }: { studio: Studio }) {
   const [tab, setTab] = useState<'content' | 'style' | 'motion'>('content');
@@ -35,17 +37,18 @@ export function Inspector({ studio }: { studio: Studio }) {
         <div className="inspector-group"><h3>Words & meaning</h3>
           <Field label="Layer name"><input value={section.name} maxLength={80} onChange={(event) => patch({ name: event.target.value })} /></Field>
           {section.kind !== 'spacer' && <>
-            <Field label="Eyebrow"><input value={section.eyebrow} maxLength={160} placeholder="A small introduction" onChange={(event) => patch({ eyebrow: event.target.value })} /></Field>
-            <Field label={section.kind === 'quote' ? 'Quote' : 'Heading'}><textarea rows={3} value={section.title} maxLength={500} onChange={(event) => patch({ title: event.target.value })} /></Field>
-            <Field label="Description"><textarea rows={4} value={section.body} maxLength={5000} placeholder="A story worth telling…" onChange={(event) => patch({ body: event.target.value })} /></Field>
+            <Field label="Eyebrow"><input value={section.eyebrow} maxLength={300} placeholder="A small introduction" onChange={(event) => patch({ eyebrow: event.target.value })} /></Field>
+            <Field label={section.kind === 'quote' ? 'Quote' : 'Heading'}><textarea rows={3} value={section.title} maxLength={2000} onChange={(event) => patch({ title: event.target.value })} /></Field>
+            <Field label="Description"><textarea rows={4} value={section.body} maxLength={20000} placeholder="A story worth telling…" onChange={(event) => patch({ body: event.target.value })} /></Field>
           </>}
           <p className="quiet-note"><Type size={13} />Double-click words on the canvas to edit them.</p>
         </div>
         {section.kind !== 'spacer' && <div className="inspector-group"><h3>A next step</h3>
-          <Field label="Button label"><input value={section.buttonLabel} maxLength={120} placeholder="Explore the collection" onChange={(event) => patch({ buttonLabel: event.target.value })} /></Field>
-          <Field label="Button destination" hint="Use #section-id, a page filename, https://, or mailto:."><input value={section.buttonHref} maxLength={500} placeholder="#contact" onChange={(event) => patch({ buttonHref: event.target.value })} /></Field>
+          <Field label="Button label"><input value={section.buttonLabel} maxLength={200} placeholder="Explore the collection" onChange={(event) => patch({ buttonLabel: event.target.value })} /></Field>
+          <Field label="Button destination" hint="Use #section-id, a page filename, https://, or mailto:."><ValidatedInput value={section.buttonHref} placeholder="#contact" onChange={(buttonHref) => patch({ buttonHref })} validate={(value) => safeHref(value) ? null : "Enter a safe page, anchor, email or web link."} /></Field>
         </div>}
-        {['image', 'gallery', 'hero', 'cards'].includes(section.kind) && <div className="inspector-group"><h3>Image</h3>
+        {['cards', 'gallery'].includes(section.kind) && <CollectionEditor section={section} onChange={(items) => patch({ items })} announce={studio.announce} />}
+        {['image', 'hero'].includes(section.kind) && <div className="inspector-group"><h3>Image</h3>
           <input ref={imageInput} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={(event) => { void loadImage(event.target.files?.[0]); event.target.value = ''; }} />
           {section.image && <img className="image-swatch" src={section.image} alt="Selected image preview" />}
           <button className="secondary-button full-width" onClick={() => imageInput.current?.click()}><ImagePlus size={15} />{section.image ? 'Replace image' : 'Choose an image'}</button>
