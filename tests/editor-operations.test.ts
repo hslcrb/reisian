@@ -6,7 +6,16 @@ describe('portable page editing', () => {
     const page = createProject().pages[0];
     const originalTarget = page.sections[2].id;
     page.sections[0].buttonHref = `#${originalTarget}`;
-    page.sections[2].items = [{ id: 'item-one', title: 'Object', body: '', image: '', imageAlt: '', href: `#${originalTarget}` }];
+    page.sections[2].items = [
+      {
+        id: 'item-one',
+        title: 'Object',
+        body: '',
+        image: '',
+        imageAlt: '',
+        href: `#${originalTarget}`,
+      },
+    ];
     const duplicate = copyPage(page, 'home-copy');
     expect(duplicate.sections[0].buttonHref).toBe(`#${duplicate.sections[2].id}`);
     expect(duplicate.sections[2].items?.[0].href).toBe(`#${duplicate.sections[2].id}`);
