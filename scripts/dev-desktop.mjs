@@ -13,7 +13,7 @@ let stopping = false;
 async function stop(code = 0) {
   if (stopping) return;
   stopping = true;
-  if (desktop?.pid && desktop.exitCode === null) {
+  if (desktop?.pid && desktop.exitCode === null && desktop.signalCode === null) {
     const exited = new Promise(resolve => desktop.once('exit', resolve));
     desktop.kill('SIGTERM');
     const timeout = setTimeout(() => desktop.kill('SIGKILL'), 5000);
@@ -29,11 +29,11 @@ try {
   server = await createServer({ root, server: { host: '127.0.0.1', port, strictPort: true, open: false } });
   await server.listen();
   server.printUrls();
-  desktop = spawn(require('electron'), [root], {
-    cwd: root, stdio: 'inherit', env: { ...process.env, REISIAN_DEV_URL: `http://127.0.0.1:${port}/` },
-  });
+  const env = { ...process.env, REISIAN_DEV_URL: `http://127.0.0.1:${port}/` };
+  delete env.ELECTRON_RUN_AS_NODE;
+  desktop = spawn(require('electron'), [root], { cwd: root, stdio: 'inherit', env });
   desktop.once('error', error => { console.error(error.message); void stop(1); });
-  desktop.once('exit', code => { void stop(code ?? 0); });
+  desktop.once('exit', (code, signal) => { void stop(code ?? (signal ? 1 : 0)); });
 } catch (error) {
   console.error('Could not start the desktop development session:', error.message);
   await stop(1);
