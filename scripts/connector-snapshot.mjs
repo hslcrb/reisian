@@ -7,10 +7,12 @@ if (!paths.length) throw new Error('Supply explicit repository-relative paths.')
 const tree = paths.map((path) => {
   const absolute = resolve(root, path);
   const name = relative(root, absolute).split(sep).join('/');
-  if (name.startsWith('../') || name === '..' || name.startsWith('.git/')) throw new Error('Path outside source tree.');
+  if (name.startsWith('../') || name === '..' || name.startsWith('.git/'))
+    throw new Error('Path outside source tree.');
   if (!lstatSync(absolute).isFile()) throw new Error('Only ordinary files are supported.');
   const content = readFileSync(absolute, 'utf8');
-  if (content.includes('\0') || content.includes('\uFFFD')) throw new Error('Use a blob for binary files.');
+  if (content.includes('\0') || content.includes('\uFFFD'))
+    throw new Error('Use a blob for binary files.');
   return { path: name, mode: '100644', type: 'blob', content };
 });
 process.stdout.write(JSON.stringify(tree));

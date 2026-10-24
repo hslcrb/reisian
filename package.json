@@ -20,26 +20,29 @@
     "desktop": "electron .",
     "test:desktop": "node scripts/smoke-desktop.mjs",
     "package": "npm run build && electron-builder --config electron-builder.config.cjs --linux --dir",
-    "package:win": "npm run build && electron-builder --config electron-builder.config.cjs --win portable"
+    "package:win": "npm run build && electron-builder --config electron-builder.config.cjs --win portable",
+    "format": "prettier --write src tests electron scripts *.json *.ts *.html *.cjs",
+    "format:check": "prettier --check src tests electron scripts *.json *.ts *.html *.cjs"
   },
   "dependencies": {
-    "react": "19.3.1",
-    "react-dom": "19.3.1",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
-    "jszip": "^3.10.1"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "latest",
+    "@playwright/test": "latest",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@types/node": "^24.0.0",
     "@vitejs/plugin-react": "latest",
+    "electron": "45.0.0",
+    "electron-builder": "26.18.0",
+    "prettier": "3.9.10",
     "typescript": "^5.9.3",
     "vite": "8.3.5",
-    "vitest": "5.0.5",
-    "@playwright/test": "latest",
-    "@axe-core/playwright": "latest",
-    "electron": "45.0.0",
-    "electron-builder": "26.18.0"
+    "vitest": "5.0.5"
   },
   "engines": {
     "node": ">=22.12.0"
