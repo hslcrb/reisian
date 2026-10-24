@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 144" role="img" aria-labelledby="title desc">
+  <title id="title">Reisian — ink wordmark</title>
+  <desc id="desc">The R symbol and Reisian name in a single dark ink color.</desc>
+  <path fill="#30252D" fill-rule="evenodd" d="M32 104V24H70C93 24 108 37 108 57C108 74 97 86 80 89L108 120H79L52 89V120H32V104ZM52 43V71H68C80 71 87 66 87 57C87 48 80 43 68 43H52Z"/>
+  <text x="146" y="104" fill="#30252D" font-family="Georgia, Times New Roman, serif" font-size="92" letter-spacing="-5">Reisian</text>
+</svg>

@@ -11,6 +11,14 @@ export interface SceneSettings {
   scale: number;
   wireframe: boolean;
 }
+export interface SectionItem {
+  id: string;
+  title: string;
+  body: string;
+  image: string;
+  imageAlt: string;
+  href: string;
+}
 export interface Section {
   id: string;
   kind: SectionKind;
@@ -30,6 +38,7 @@ export interface Section {
   motion: MotionPreset;
   scene: SceneSettings;
   hidden: boolean;
+  items?: SectionItem[];
 }
 export interface Page {
   id: string;

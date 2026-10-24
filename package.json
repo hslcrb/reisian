@@ -15,7 +15,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run typecheck && npm test && npm run build",
+    "dev:desktop": "node scripts/dev-desktop.mjs",
+    "desktop": "electron .",
+    "test:desktop": "node scripts/smoke-desktop.mjs",
+    "package": "npm run build && electron-builder --config electron-builder.config.cjs --linux --dir",
+    "package:win": "npm run build && electron-builder --config electron-builder.config.cjs --win portable"
   },
   "dependencies": {
     "react": "19.3.1",
@@ -36,5 +41,7 @@
     "electron": "45.0.0",
     "electron-builder": "26.18.0"
   },
-  "engines": { "node": ">=22.12.0" }
+  "engines": {
+    "node": ">=22.12.0"
+  }
 }
