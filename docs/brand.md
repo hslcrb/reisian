@@ -13,14 +13,16 @@ Reisian is a visual instrument: warm enough to invite experimentation, precise e
 | --- | --- |
 | [`reisian-mark.svg`](../public/brand/reisian-mark.svg) | Primary two-color symbol on pale surfaces |
 | [`reisian-wordmark.svg`](../public/brand/reisian-wordmark.svg) | Horizontal symbol and name, documentation and introductions |
-| [`reisian-app.svg`](../public/brand/reisian-app.svg) | App tile; export at the native platform's required sizes |
+| [`reisian-app.svg`](../public/brand/reisian-app.svg) | Original vector app tile |
+| [`reisian-app.png`](../public/brand/reisian-app.png) | 512 × 512 raster icon for Electron and Linux packaging |
+| [`reisian-app.ico`](../public/brand/reisian-app.ico) | Windows icon with seven sizes: 16, 24, 32, 48, 64, 128 and 256 pixels |
 | [`reisian-mark-ink.svg`](../public/brand/reisian-mark-ink.svg) | Single-color dark symbol, small sizes and print |
 | [`reisian-mark-paper.svg`](../public/brand/reisian-mark-paper.svg) | Single-color light symbol on dark surfaces |
 | [`reisian-wordmark-ink.svg`](../public/brand/reisian-wordmark-ink.svg) | Single-color horizontal lockup |
 | [`brand-board.svg`](../public/brand/brand-board.svg) | Overview and reference |
 | [`palette.json`](../public/brand/palette.json) | Portable named swatches |
 
-All symbols are native vector paths with no embedded raster images, scripts, external images or network fonts. Every SVG includes a title and description. Wordmark lettering uses `Georgia, Times New Roman, serif`; installed fonts can change its precise letterforms. The core symbol is independent of font availability. Brand artwork is included under the repository's MIT license; do not imply that a fork is an official Reisian release.
+All symbols are native vector paths with no embedded raster images, scripts, external images or network fonts. Every SVG includes a title and description. The PNG and ICO are raster derivatives of the original app tile; the packaging configuration references them for native application branding. Wordmark lettering uses `Georgia, Times New Roman, serif`; installed fonts can change its precise letterforms. The core symbol is independent of font availability. Brand artwork is included under the repository's MIT license; do not imply that a fork is an official Reisian release.
 
 ## Palette
 
