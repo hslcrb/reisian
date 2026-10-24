@@ -22,6 +22,15 @@ describe('shared semantic rendering and offline export', () => {
     expect(files.find(f=>f.path==='index.html')!.content).toContain('src="runtime.js"');
     expect(files.find(f=>f.path==='runtime.js')!.content).not.toContain('import ');
   });
+  it('resolves page fragments and rejects export filename collisions', () => {
+    const p = createProject();
+    p.pages.push({...p.pages[0],id:'about',slug:'about',name:'About',sections:[]});
+    p.pages[0].sections[0].buttonHref='about#main';
+    expect(renderPageDocument(p,p.pages[0].id)).toContain('href="about.html#main"');
+    p.pages[0].slug='home';p.pages[1].slug='index';
+    p.pages.push({...p.pages[1],id:'collision',slug:'page-2'});
+    expect(()=>createExportBundle(p)).toThrow(/filename/);
+  });
   it('rejects missing pages and emits reduced-motion preference', () => {
     const p = createProject(); expect(()=>renderPageDocument(p,'missing')).toThrow(/page/i);
     expect(renderPageDocument(p,p.pages[0].id,{reducedMotion:true})).toContain('data-reduced-motion="true"');

@@ -8,8 +8,9 @@ export const pageFileName = (project: Project, page: Page) => project.pages[0]?.
 export const runtimeSource = () => runtimeText.replace('export function mountSite()', 'function mountSite()') + '\nmountSite();';
 function href(project: Project, link: string): string {
   if (!safeHref(link)) return '#main';
-  const page = project.pages.find(p => p.slug === link || `${p.slug}.html` === link);
-  return page ? pageFileName(project,page) : link || '#main';
+  const [destination, fragment] = link.split('#');
+  const page = project.pages.find(p => p.slug === destination || `${p.slug}.html` === destination);
+  return page ? pageFileName(project,page) + (fragment ? `#${fragment}` : '') : link || '#main';
 }
 function scene(section: Section): string {
   const settings = { shape: ['torus','sphere','wave','knot'].includes(section.scene.shape) ? section.scene.shape : 'torus', color: cssColor(section.scene.color,'#9AAE91'), background: cssColor(section.scene.background,'#E5E8DD'), speed: Math.max(0,Math.min(3,Number(section.scene.speed)||0)), scale: Math.max(.3,Math.min(2.5,Number(section.scene.scale)||1)), wireframe: !!section.scene.wireframe };
