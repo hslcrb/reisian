@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Page, Project, Section, SectionKind } from '../core/types';
 import { createProject, createSection, parseProject, serializeProject } from '../core/model';
 import { createHistory, pushHistory, redoHistory, undoHistory } from './history';
+import { copyPage, hasRoomForSections } from './operations';
 
 export const STORAGE_KEY = 'reisian.project.v1';
 function initialProject(): { project: Project; recovered: boolean } {
@@ -17,6 +18,7 @@ export function useStudio() {
   const project = history.present;
   const [pageId, setPageId] = useState(project.pages[0].id);
   const [selectedId, setSelectedId] = useState<string | null>(project.pages[0].sections[0]?.id ?? null);
+  const [saveError, setSaveError] = useState('');
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [notice, setNotice] = useState(initial.recovered ? 'Your last canvas is right here.' : 'A little inspiration, ready to make yours.');
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -35,8 +37,8 @@ export function useStudio() {
   useEffect(() => {
     setSaveStatus('saving');
     const timer = setTimeout(() => {
-      try { localStorage.setItem(STORAGE_KEY, serializeProject(project)); setSaveStatus('saved'); }
-      catch { setSaveStatus('error'); }
+      try { localStorage.setItem(STORAGE_KEY, serializeProject(project)); setSaveStatus('saved'); setSaveError(''); }
+      catch (error) { setSaveStatus('error'); setSaveError(error instanceof DOMException && error.name === 'QuotaExceededError' ? 'Local storage is full. Save a project file to keep your work.' : error instanceof Error ? error.message : 'Local storage is unavailable. Save a project file to keep your work.'); }
     }, 350);
     return () => clearTimeout(timer);
   }, [project]);
@@ -62,6 +64,7 @@ export function useStudio() {
     setPageId(id); setSelectedId(next.sections[0]?.id ?? null);
   };
   const addSection = (kind: SectionKind) => {
+    if (!hasRoomForSections(project, page.id)) { announce('This project supports 100 sections per page and 300 in total. Remove a section before adding more.'); return; }
     const section = createSection(kind);
     change((draft) => {
       const target = draft.pages.find((item) => item.id === page.id)!;
@@ -78,9 +81,10 @@ export function useStudio() {
     sections.splice(Math.max(0, Math.min(targetIndex, sections.length)), 0, section);
   });
   const duplicateSection = (id: string) => {
+    if (!hasRoomForSections(project, page.id)) { announce('Section limit reached. Remove a section before duplicating.'); return; }
     const original = page.sections.find((item) => item.id === id);
     if (!original) return;
-    const duplicate = { ...structuredClone(original), id: crypto.randomUUID(), name: `${original.name} copy` };
+    const duplicate = { ...structuredClone(original), id: crypto.randomUUID(), name: `${original.name.slice(0, 115)} copy` };
     change((draft) => {
       const sections = draft.pages.find((item) => item.id === page.id)!.sections;
       sections.splice(sections.findIndex((item) => item.id === id) + 1, 0, duplicate);
@@ -95,6 +99,7 @@ export function useStudio() {
     announce('Section removed. Undo is always here.');
   };
   const addPage = () => {
+    if (project.pages.length >= 30 || project.pages.reduce((sum, item) => sum + item.sections.length, 0) >= 300) { announce('This project supports up to 30 pages and 300 sections.'); return; }
     const id = crypto.randomUUID();
     const used = new Set(project.pages.map((item) => item.slug));
     let number = project.pages.length + 1;
@@ -104,13 +109,11 @@ export function useStudio() {
     setPageId(id); setSelectedId(next.sections[0].id); announce('A new page, a new possibility.');
   };
   const duplicatePage = () => {
-    const duplicate = structuredClone(page);
-    duplicate.id = crypto.randomUUID(); duplicate.name += ' copy';
+    if (project.pages.length >= 30 || project.pages.reduce((sum, item) => sum + item.sections.length, 0) + page.sections.length > 300) { announce('This project supports up to 30 pages and 300 sections.'); return; }
     const used = new Set(project.pages.map((item) => item.slug));
-    const base = `${page.slug || 'home'}-copy`; let slug = base; let suffix = 2;
+    const base = `${(page.slug || 'home').slice(0, 65).replace(/-+$/, '')}-copy`; let slug = base; let suffix = 2;
     while (used.has(slug)) slug = `${base}-${suffix++}`;
-    duplicate.slug = slug;
-    duplicate.sections.forEach((section) => { section.id = crypto.randomUUID(); });
+    const duplicate = copyPage(page, slug);
     change((draft) => { draft.pages.push(duplicate); });
     setPageId(duplicate.id); setSelectedId(duplicate.sections[0]?.id ?? null); announce('Page duplicated.');
   };
@@ -125,6 +128,6 @@ export function useStudio() {
   };
   const undo = useCallback(() => { setHistory(undoHistory); }, []);
   const redo = useCallback(() => { setHistory(redoHistory); }, []);
-  return { project, page, selected, selectedId, setSelectedId, history, change, patchSection, patchPage, selectPage, addSection, moveSection, duplicateSection, removeSection, addPage, duplicatePage, removePage, loadProject, undo, redo, saveStatus, notice, announce };
+  return { project, page, selected, selectedId, setSelectedId, history, change, patchSection, patchPage, selectPage, addSection, moveSection, duplicateSection, removeSection, addPage, duplicatePage, removePage, loadProject, undo, redo, saveStatus, saveError, notice, announce };
 }
 export type Studio = ReturnType<typeof useStudio>;
