@@ -11,6 +11,7 @@ export function createProject(template: 'atelier' | 'portfolio' | 'blank' = 'ate
   const hero = createSection('hero');
   const text = createSection('text'); text.eyebrow = '01 / Our philosophy'; text.body = 'A quieter kind of design. We believe the most enduring things don’t ask for attention — they earn it. Through honest materials, thoughtful forms, and room to breathe.';
   const gallery = createSection('gallery'); gallery.eyebrow = '02 / Selected objects'; gallery.title = 'Form follows feeling.'; gallery.body = 'An ongoing exploration of shape, texture, and the space in between.'; gallery.background = '#E5E8DD';
+  hero.buttonHref = `#${gallery.id}`;
   const quote = createSection('quote'); quote.eyebrow = 'A note from the studio'; quote.title = '“The everyday deserves a little extraordinary.”'; quote.body = 'Made slowly. Made with intention.'; quote.align = 'center'; quote.background = '#DDD6EA';
   const contact = createSection('contact'); contact.eyebrow = 'The next chapter'; contact.background = '#29352D'; contact.color = '#F4F1EA'; contact.body = 'Have a thought, a question, or the beginning of an idea? Our door is open.';
   if (template === 'portfolio') { hero.eyebrow = 'Designer & creative thinker'; hero.title = 'Ideas made tangible.'; hero.body = 'A selection of independent work across identity, objects, and digital experiences.'; hero.scene.shape = 'knot'; hero.scene.color = '#AEA1C9'; gallery.title = 'A few things I’ve made.'; }
