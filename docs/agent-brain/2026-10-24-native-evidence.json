@@ -1,0 +1,116 @@
+{
+  "status": "final",
+  "verifiedAt": "2026-10-24T05:21:09.872Z",
+  "rendererAssets": [
+    {
+      "path": "dist/assets/index-B_dck8L6.js",
+      "bytes": 334734,
+      "sha256": "609b3b36fde5e39579e5c30f057228bc05afc6f38508cc2aa6cc51ce6cfd1e31"
+    },
+    {
+      "path": "dist/assets/index-sxJ4GLK_.css",
+      "bytes": 34206,
+      "sha256": "60fe1a10eaa5fea919424ca7ef28529f77cb8f13ed71c276c6cbb8b142933771"
+    },
+    {
+      "path": "dist/assets/jszip.min-BjpSyjMZ.js",
+      "bytes": 95925,
+      "sha256": "4e39dcb7502ff4c4c5a3ad86ad3cce156650186f8ad66f132e0bf57667ba6a4b"
+    }
+  ],
+  "electronVersion": "45.0.0",
+  "electronBuilderVersion": "26.18.0",
+  "nativeProduction": {
+    "passed": 8,
+    "checks": [
+      "isolated renderer and narrow bridge",
+      "WebGL pixel rendering",
+      "project save/open round trip",
+      "save/open/export cancellation",
+      "malformed import and path traversal rejection",
+      "actual ZIP contents",
+      "actionable write error",
+      "remote navigation/windows/network denial"
+    ]
+  },
+  "nativePackagedLinux": {
+    "passed": 8,
+    "checks": [
+      "isolated renderer and narrow bridge",
+      "WebGL pixel rendering",
+      "project save/open round trip",
+      "save/open/export cancellation",
+      "malformed import and path traversal rejection",
+      "actual ZIP contents",
+      "actionable write error",
+      "remote navigation/windows/network denial"
+    ]
+  },
+  "runtimeConditions": {
+    "platform": "Linux x64 root-owned container",
+    "headless": true,
+    "softwareGraphics": true,
+    "osSandboxDisabledForTest": true,
+    "applicationSandboxPreference": true,
+    "command": "REISIAN_ELECTRON_NO_SANDBOX=1 REISIAN_ELECTRON_HEADLESS=1 REISIAN_ELECTRON_SOFTWARE_GL=1 npm run test:desktop",
+    "packagedExecutable": "release/linux-unpacked/reisian",
+    "note": "The explicit test-only no-sandbox flag is required in this root-owned container; shipped defaults keep sandbox:true. OS sandbox enforcement is not verified by this test."
+  },
+  "appArchives": {
+    "linux": {
+      "path": "release/linux-unpacked/resources/app.asar",
+      "bytes": 37655385,
+      "sha256": "2ed26d590f56043ca815aa8d46a979cd90be7564268380cbe60701dbd881a667",
+      "finalAssetsByteEqual": true,
+      "appIconIncluded": true
+    },
+    "win": {
+      "path": "release/win-unpacked/resources/app.asar",
+      "bytes": 37655385,
+      "sha256": "2ed26d590f56043ca815aa8d46a979cd90be7564268380cbe60701dbd881a667",
+      "finalAssetsByteEqual": true,
+      "appIconIncluded": true
+    }
+  },
+  "artifacts": {
+    "linux": {
+      "path": "release/Reisian-0.1.0-linux-x64.tar.gz",
+      "bytes": 128508562,
+      "sha256": "0f6c92330f8c841e2d754f3dd8ce8e6653102ed2e652b1522ffefeb241d40c58"
+    },
+    "windows": {
+      "path": "release/Reisian-0.1.0-windows-x64.exe",
+      "bytes": 111557547,
+      "sha256": "eeedc7bd54ef495c244f2aba94383069293dbcb8f19b71449fd51ab7d22473fe"
+    }
+  },
+  "windows": {
+    "crossBuildSucceeded": true,
+    "runtimeTested": false,
+    "signed": false,
+    "applicationIcons": {
+      "embedded": 7,
+      "approvedImageMatches": 7
+    },
+    "portableIcons": {
+      "embedded": 7,
+      "approvedImageMatches": 7
+    },
+    "actualPortablePayloadEntries": 75,
+    "actualEmbeddedAsarSha256": "2ed26d590f56043ca815aa8d46a979cd90be7564268380cbe60701dbd881a667",
+    "actualPortablePayloadClean": true
+  },
+  "linux": {
+    "archiveEntries": 75,
+    "archiveClean": true,
+    "nativeSmokePassed": true
+  },
+  "cleanup": {
+    "unpackedOutputsClean": true,
+    "finalDistributableArchivesClean": true,
+    "builderHookLoaderVerified": true,
+    "portablePayloadAutomaticallyClean": true,
+    "postBuildExplicitHelperUsedForMirroredUnpackedOutputs": true,
+    "note": "Builder CJS hook resolution and context were verified using its installed resolveFunction loader. Actual Windows portable nested payload was already clean before explicit post-build cleanup and embeds the exact final ASAR. Delayed generated files were observed in unpacked output after a builder return; the same helper was invoked explicitly before Linux archive creation. This appears environment-specific; hook invocation had no diagnostic log, so delayed filesystem mirroring is an inference."
+  }
+}
