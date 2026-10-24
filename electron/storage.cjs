@@ -18,7 +18,10 @@ async function atomicWrite(destination, data) {
     await fs.rename(temporary, destination);
   } finally {
     if (handle) await handle.close().catch(() => {});
-    await fs.unlink(temporary).catch(error => { if (error.code !== 'ENOENT') console.warn('Could not remove a temporary Reisian file:', error.code); });
+    await fs.unlink(temporary).catch((error) => {
+      if (error.code !== 'ENOENT')
+        console.warn('Could not remove a temporary Reisian file:', error.code);
+    });
   }
 }
 
@@ -46,7 +49,16 @@ async function readProject(filename) {
 }
 
 function fileError(error) {
-  const hints = { EACCES: 'Permission denied. Choose a location you can write to.', EPERM: 'Permission denied. Check that the file is not locked by another application.', ENOSPC: 'The disk is full. Free some space and try again.', ENOENT: 'The selected file or folder no longer exists.', EISDIR: 'Choose a file, not a folder.', EROFS: 'This location is read-only. Choose another folder.' };
-  return new Error(hints[error.code] || error.message || 'The file operation failed. Try another location.');
+  const hints = {
+    EACCES: 'Permission denied. Choose a location you can write to.',
+    EPERM: 'Permission denied. Check that the file is not locked by another application.',
+    ENOSPC: 'The disk is full. Free some space and try again.',
+    ENOENT: 'The selected file or folder no longer exists.',
+    EISDIR: 'Choose a file, not a folder.',
+    EROFS: 'This location is read-only. Choose another folder.',
+  };
+  return new Error(
+    hints[error.code] || error.message || 'The file operation failed. Try another location.',
+  );
 }
 module.exports = { atomicWrite, readProject, fileError };

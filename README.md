@@ -13,16 +13,20 @@ Reisian is a local-first, visual-only website builder built with Electron, React
 
 **Status: working alpha under active development.** This is an early section-based editor, with a focused set of controls and presets. It does not claim feature parity with mature commercial builders or production readiness on every desktop platform. See [current limitations](#current-limitations) and the [roadmap](docs/ROADMAP.md).
 
+![Reisian desktop studio with layers, visual canvas and section inspector](docs/assets/studio-desktop.png)
+
+*The actual alpha editor. [3D controls](docs/assets/studio-scene.png) · [Mobile artboard](docs/assets/studio-mobile.png).*
+
 ## A studio, on your computer
 
-- **Visual authoring:** edit page content and arrange sections on the canvas, with buttons and keyboard alternatives for ordering.
+- **Visual authoring:** double-click section text on the canvas, edit individual card/gallery items in the inspector, and arrange sections with drag or button/keyboard alternatives.
 - **A coherent site:** manage pages, titles and descriptions; adjust theme colors, typography, spacing and alignment.
 - **Expressive defaults:** start with an editorial template, choose scroll-motion presets and configure a procedural WebGL sculpture through visual controls.
 - **Responsive preview:** inspect desktop, tablet and mobile widths with the same page renderer used for export.
 - **Your files:** use undo/redo and local autosave, save and open `.reisian` projects, and export a ZIP of standalone website files.
 - **Accessible authoring:** inspect heading, alternative-text and contrast feedback; preserve visible focus and respect reduced-motion preferences in generated sites.
 
-The editor has no code-entry panel. Core authoring does not require an account, hosted rendering service, AI API key or cloud project storage. Adding an external image URL or link can create network requests when used; “local-first” does not mean every authored page is automatically offline.
+The editor has no code-entry panel. Core authoring does not require an account, hosted rendering service, AI API key or cloud project storage. Uploaded raster images are embedded; remote image URLs are rejected. Generated pages use local CSS and JavaScript with no required CDN. Authored external links still take visitors to external destinations when followed.
 
 ## Run it
 
@@ -61,17 +65,18 @@ Open the local URL printed by Vite. The browser surface supports editor developm
 
 | Command | Purpose |
 | --- | --- |
+| `npm run format:check` | Check source formatting |
 | `npm run check` | Type checking, unit tests and production build |
-| `npm run test:e2e` | Browser interaction tests |
+| `npm run test:e2e` | Build and test the production editor in Chromium |
 | `npm run test:desktop` | Native Electron smoke test; needs a display |
 | `npm run package` | Build a Linux unpacked application directory |
 | `npm run package:win` | Build a Windows portable package; requires an appropriate build environment |
 
-If Chromium is missing, install the test browser with `npx playwright install chromium`. On headless Linux, run desktop smoke tests with `xvfb-run -a npm run test:desktop` after installing the required display and system dependencies. Packaging commands describe available build targets, not a claim that signed releases or all platforms have been validated. Actual verification evidence belongs in [`docs/agent-brain/`](docs/agent-brain/). This repository uses local checks and does not use GitHub Actions workflows.
+If Chromium is missing, install the test browser with `npx playwright install chromium`. On headless Linux, run desktop smoke tests with `xvfb-run -a npm run test:desktop` after installing the required display and system dependencies. The integrated Linux application and its unpacked package passed native smoke checks. The Windows portable target is cross-built and unsigned; Windows runtime and macOS builds have not been verified. See the [delivery report](docs/agent-brain/2026-10-24-delivery.md) for exact evidence, artifacts and container-specific test limits. This repository uses local checks and does not use GitHub Actions workflows.
 
 ## Make your first site
 
-1. Start from the included design or create a blank page.
+1. Start with Atelier, Portfolio or a blank project.
 2. Select a section and edit its content. Add, duplicate, remove or reorder sections using the canvas and controls.
 3. Adjust the theme, links, image alternatives and page information. Choose motion and sculpture settings if they serve your content.
 4. Preview at different widths, try the keyboard flow and review accessibility findings.
@@ -85,10 +90,11 @@ If Chromium is missing, install the test browser with `npx playwright install ch
 
 - Layout is based on the supported section types and controls. Arbitrary DOM editing, custom code entry, third-party scripts, commerce, authentication and a hosted CMS are outside this alpha.
 - Motion uses presets; 3D uses procedural geometry and materials. There is no full animation timeline, imported 3D-model editor or complex scene authoring system.
-- Accessibility feedback covers selected detectable problems. It is not a complete WCAG audit or a guarantee that every exported site is accessible. Authors still need to review meaning, reading order, keyboard use and assistive-technology behavior.
+- Accessibility feedback covers titles, visible headings, image alternatives, selected links, movement reminders and solid-color text contrast. Automated editor testing excludes the canvas iframe and checks for serious/critical violations; a separate default-export scan covers that fixture. Neither is a complete WCAG audit or a guarantee that every exported site is accessible. Authors must review meaning, reading order, image-backed contrast, keyboard use and assistive-technology behavior.
 - WebGL availability depends on the browser and graphics environment. Generated pages provide a static alternative and respect reduced motion; test the exported result on your intended devices.
 - Local autosave is a convenience, not a backup. Save separate project files before significant changes. Browser storage can be cleared, and future schema migrations may require attention.
-- There are no promised signed installers, automatic updates or cross-platform release guarantees. Consult the recorded test evidence for the exact environment exercised.
+- Linux native and packaged smoke checks ran in a root container with an explicit test-only OS sandbox exception and software graphics. Production Electron keeps context isolation and renderer sandbox settings enabled. Windows artifacts are unsigned and have not been run on Windows; macOS was not built. There is no automatic update service.
+- Interface copy is currently English; project content accepts Korean and other Unicode text. The bilingual documentation does not imply complete interface localization.
 
 ## Project map
 

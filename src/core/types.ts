@@ -1,5 +1,6 @@
 /** Versioned portable project format. All authoring remains visual. */
-export type SectionKind = 'hero' | 'text' | 'image' | 'gallery' | 'scene' | 'cards' | 'quote' | 'contact' | 'spacer';
+export type SectionKind =
+  'hero' | 'text' | 'image' | 'gallery' | 'scene' | 'cards' | 'quote' | 'contact' | 'spacer';
 export type MotionPreset = 'none' | 'reveal' | 'parallax' | 'rotate';
 export type SceneShape = 'torus' | 'sphere' | 'wave' | 'knot';
 export type FontPair = 'editorial' | 'modern' | 'humanist';
@@ -71,13 +72,25 @@ export interface AuditIssue {
   pageId: string;
   sectionId?: string;
 }
-export interface ExportFile { path: string; content: string; }
-export interface ExportBundle { files: ExportFile[]; }
+export interface ExportFile {
+  path: string;
+  content: string;
+}
+export interface ExportBundle {
+  files: ExportFile[];
+}
 export type RenderMode = 'editor' | 'preview' | 'export';
-export interface RenderOptions { mode?: RenderMode; selectedId?: string; reducedMotion?: boolean; }
+export interface RenderOptions {
+  mode?: RenderMode;
+  selectedId?: string;
+  reducedMotion?: boolean;
+}
 export interface NativeBridge {
   platform: string;
   saveProject: (content: string, name: string) => Promise<{ canceled: boolean; filePath?: string }>;
   openProject: () => Promise<{ canceled: boolean; content?: string; filePath?: string }>;
-  exportSite: (files: ExportFile[], name: string) => Promise<{ canceled: boolean; filePath?: string }>;
+  exportSite: (
+    files: ExportFile[],
+    name: string,
+  ) => Promise<{ canceled: boolean; filePath?: string }>;
 }
