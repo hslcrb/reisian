@@ -28,6 +28,10 @@ export function auditProject(project: Project): AuditIssue[] {
       if(s.buttonHref.startsWith('#')&&s.buttonHref!=='#main'&&s.buttonHref!=='#'){
         const anchor=s.buttonHref.slice(1);if(!visible.some(target=>target.id===anchor||(target.kind==='contact'&&anchor==='contact')))add('warning','This section link has no destination','Choose an existing section on this page or use a valid page link.',s.id);
       }
+      for(const item of s.items ?? []) {
+        if(item.image&&!item.imageAlt.trim())add('error','Add an image alternative',`Describe the image in “${item.title || 'Untitled item'}” so its meaning is available to visitors using assistive technology.`,s.id);
+        if(item.href&&!safeHref(item.href))add('error','This item link destination is unsafe','Use a web address, email address, telephone number, page slug, or section anchor.',s.id);
+      }
       if(s.motion!=='none')add('info','Review movement and reading order','Reduced-motion preferences and the pause control are supported. Preview this effect and check that all text remains easy to read.',s.id);
     }
   }

@@ -31,6 +31,14 @@ describe('shared semantic rendering and offline export', () => {
     p.pages.push({...p.pages[1],id:'collision',slug:'page-2'});
     expect(()=>createExportBundle(p)).toThrow(/filename/);
   });
+  it('renders authored items and identifies preview page destinations', () => {
+    const p=createProject(); const gallery=p.pages[0].sections.find(s=>s.kind==='gallery')!;
+    gallery.items![0].title='Handmade cup';gallery.items![0].body='A one-of-a-kind ceramic.';
+    p.pages.push({...p.pages[0],id:'about',slug:'about',name:'About',sections:[]});
+    p.pages[0].sections[0].buttonHref='about';
+    const html=renderPageDocument(p,p.pages[0].id,{mode:'preview'});
+    expect(html).toContain('Handmade cup');expect(html).toContain('A one-of-a-kind ceramic.');expect(html).toContain('data-page-id="about"');
+  });
   it('rejects missing pages and emits reduced-motion preference', () => {
     const p = createProject(); expect(()=>renderPageDocument(p,'missing')).toThrow(/page/i);
     expect(renderPageDocument(p,p.pages[0].id,{reducedMotion:true})).toContain('data-reduced-motion="true"');
