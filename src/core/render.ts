@@ -1,11 +1,11 @@
 import type { Page, Project, RenderOptions, Section } from './types';
 import { safeColor, safeHref, safeImage } from './model';
 import { siteStyles } from './styles';
-import { mountSite } from '../runtime/site-runtime.js';
+import runtimeText from '../runtime/site-runtime.js?raw';
 export const escapeHTML = (text: unknown): string => String(text ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]!));
 const cssColor = (value: string, fallback: string) => safeColor(value) ? value : fallback;
 export const pageFileName = (project: Project, page: Page) => project.pages[0]?.id === page.id ? 'index.html' : `${/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(page.slug) && page.slug !== 'index' ? page.slug : `page-${project.pages.indexOf(page)+1}`}.html`;
-export const runtimeSource = () => `(${mountSite.toString()})();`;
+export const runtimeSource = () => runtimeText.replace('export function mountSite()', 'function mountSite()') + '\nmountSite();';
 function href(project: Project, link: string): string {
   if (!safeHref(link)) return '#main';
   const page = project.pages.find(p => p.slug === link || `${p.slug}.html` === link);
