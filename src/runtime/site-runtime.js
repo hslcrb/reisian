@@ -8,7 +8,7 @@ export function mountSite() {
   let explicitPause = false;
   const motionButton = document.querySelector('[data-motion-toggle]');
   const scenes = [];
-  const send = (message) => { if (editor && window.parent !== window) window.parent.postMessage(message, '*'); };
+  const send = (message) => { if ((editor || body.dataset.mode === 'preview') && window.parent !== window) window.parent.postMessage(message, '*'); };
   const updateMotion = () => {
     body.classList.toggle('motion-paused', paused);
     if (motionButton) { motionButton.setAttribute('aria-pressed', String(paused)); motionButton.textContent = paused ? 'Play motion' : 'Pause motion'; }
@@ -57,6 +57,11 @@ export function mountSite() {
       if (data.type === 'reisian:restoreScroll' && Number.isFinite(data.top)) scrollTo({ top: Math.max(0, data.top), behavior: 'instant' });
     });
   }
+  if (body.dataset.mode === 'preview') document.addEventListener('click', event => {
+    const link = event.target.closest('a'); if (!link) return;
+    if (link.dataset.pageId) { event.preventDefault(); send({type:'reisian:navigate', pageId:link.dataset.pageId}); }
+    else if (!link.getAttribute('href')?.startsWith('#')) event.preventDefault();
+  });
   if (!editor) document.addEventListener('click', (event) => { const link = event.target.closest('a[href^="#"]'); if (!link) return; const anchor = link.getAttribute('href').slice(1); const target = document.getElementById(anchor) || Array.from(document.querySelectorAll('[data-anchor]')).find(el => el.dataset.anchor === anchor); if (target) { event.preventDefault(); target.scrollIntoView({behavior: paused ? 'instant' : 'smooth'}); } });
   function vector(x, y, z) { return [x,y,z]; }
   function sub(a,b) { return a.map((v,i)=>v-b[i]); }
