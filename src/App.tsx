@@ -3,7 +3,7 @@ import { ArrowDownToLine, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronDo
 import { createProject, parseProject } from './core/model';
 import { auditProject } from './core/audit';
 import { useStudio } from './editor/useStudio';
-import { Canvas, type Device } from './editor/Canvas';
+import { Canvas, type CanvasHandle, type Device } from './editor/Canvas';
 import { Inspector } from './editor/Inspector';
 import { Sidebar, type Panel } from './editor/Sidebar';
 import { IconButton, Modal } from './editor/controls';
@@ -21,10 +21,11 @@ export default function App() {
   const [exportState, setExportState] = useState<'ready' | 'working' | 'done'>('ready');
   const [exportError, setExportError] = useState('');
   const [fileBusy, setFileBusy] = useState(false);
+  const canvasRef = useRef<CanvasHandle>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const save = useCallback(async () => {
     setFileBusy(true);
-    try { if (await saveProjectFile(studio.project)) studio.announce('Project saved. Your canvas, safely kept.'); }
+    try { if (await saveProjectFile(await canvasRef.current?.flushProject() ?? studio.project)) studio.announce('Project saved. Your canvas, safely kept.'); }
     catch (error) { studio.announce(error instanceof Error ? error.message : 'Could not save your project. Please try again.'); }
     finally { setFileBusy(false); }
   }, [studio.project, studio.announce]);
@@ -33,6 +34,7 @@ export default function App() {
     catch (error) { studio.announce(`Could not open project: ${error instanceof Error ? error.message : 'Invalid project file.'} Your current work is unchanged.`); }
   };
   const open = async () => {
+    try { await canvasRef.current?.flushProject(); } catch (error) { studio.announce(error instanceof Error ? error.message : 'Could not read pending edits.'); return; }
     if (!window.reisian) { fileInput.current?.click(); return; }
     setFileBusy(true);
     try { const result = await window.reisian.openProject(); if (!result.canceled && result.content) importText(result.content); }
@@ -57,12 +59,23 @@ export default function App() {
       }
       if (modifier && event.key.toLowerCase() === 'd' && studio.selectedId) { event.preventDefault(); studio.duplicateSection(studio.selectedId); }
     };
-    window.addEventListener('keydown', keydown); return () => window.removeEventListener('keydown', keydown);
+    const shortcut = (event: Event) => {
+      const action = (event as CustomEvent<string>).detail;
+      if (action === 'save') void save();
+      if (modal) return;
+      if (action === 'preview') setPreview((value) => !value);
+      if (action === 'return-editor') setPreview(false);
+      if (action === 'undo') studio.undo();
+      if (action === 'redo') studio.redo();
+      if (action === 'insert') { setPanel('insert'); setLeftOpen(true); setPreview(false); }
+    };
+    window.addEventListener('keydown', keydown); window.addEventListener('reisian:shortcut', shortcut);
+    return () => { window.removeEventListener('keydown', keydown); window.removeEventListener('reisian:shortcut', shortcut); };
   }, [save, studio, modal]);
   const showExport = () => { setExportState('ready'); setExportError(''); setModal('export'); };
   const doExport = async () => {
     setExportState('working'); setExportError('');
-    try { const exported = await exportProject(studio.project); setExportState(exported ? 'done' : 'ready'); if (exported) studio.announce('Your website is ready. Unzip it and open index.html.'); }
+    try { const exported = await exportProject(await canvasRef.current?.flushProject() ?? studio.project); setExportState(exported ? 'done' : 'ready'); if (exported) studio.announce('Your website is ready. Unzip it and open index.html.'); }
     catch (error) { setExportState('ready'); setExportError(error instanceof Error ? error.message : 'Export failed. Please try again.'); }
   };
   const issues = modal === 'export' ? auditProject(studio.project) : [];
@@ -73,7 +86,7 @@ export default function App() {
     <header className="topbar">
       <button className="brand" onClick={() => setModal('new')} aria-label="Reisian, start a new project"><img src="./brand/reisian-mark.svg" alt="" /><span>reisian</span><span className="alpha-label">ALPHA</span></button>
       <div className="topbar-divider" />
-      <div className="project-heading"><label className="project-title"><input aria-label="Project name" value={studio.project.name} maxLength={80} onChange={(event) => studio.change((draft) => { draft.name = event.target.value; })} /><ChevronDown size={12} /></label><span className={`save-indicator save-${studio.saveStatus}`}><span />{studio.saveStatus === 'saved' ? 'All changes saved locally' : studio.saveStatus === 'saving' ? 'Saving your changes…' : 'Storage full · save a project file'}</span></div>
+      <div className="project-heading"><label className="project-title"><input aria-label="Project name" value={studio.project.name} maxLength={80} onChange={(event) => studio.change((draft) => { draft.name = event.target.value; })} /><ChevronDown size={12} /></label><span className={`save-indicator save-${studio.saveStatus}`} title={studio.saveError || undefined}><span />{studio.saveStatus === 'saved' ? 'All changes saved locally' : studio.saveStatus === 'saving' ? 'Saving your changes…' : 'Autosave needs attention · see details'}</span></div>
       <div className="topbar-flex" />
       <div className="history-actions"><IconButton icon={Undo2} label="Undo" disabled={!studio.history.past.length} onClick={studio.undo} /><IconButton icon={Redo2} label="Redo" disabled={!studio.history.future.length} onClick={studio.redo} /></div><div className="topbar-divider small" />
       <IconButton icon={ArrowDownToLine} label="Save project file" disabled={fileBusy} onClick={() => void save()} />
@@ -84,7 +97,7 @@ export default function App() {
     <div className="studio-body">
       {!preview && <nav className="tool-rail" id="studio-tools" aria-label="Studio navigation"><button className={`insert-tool ${panel === 'insert' ? 'active' : ''}`} onClick={() => navigate('insert')} aria-label="Insert" title="Insert sections (A)"><Plus size={22} strokeWidth={1.5} /></button><span className="rail-divider" />{([{ value: 'layers', icon: Layers, label: 'Layers' }, { value: 'pages', icon: File, label: 'Pages' }, { value: 'theme', icon: Palette, label: 'Theme' }, { value: 'accessibility', icon: ShieldCheck, label: 'Accessibility' }] as const).map(({ value, icon, label }) => <div className="rail-tool" key={value}><IconButton icon={icon} label={label} active={panel === value} onClick={() => navigate(value)} /><span>{label}</span></div>)}<div className="rail-spacer" /><IconButton icon={FolderOpen} label="Open a project" disabled={fileBusy} onClick={() => void open()} /><IconButton icon={CircleHelp} label="Help and shortcuts" onClick={() => setModal('help')} /><span className="rail-version">0.1</span></nav>}
       {!preview && leftOpen && <Sidebar studio={studio} panel={panel} setPanel={setPanel} onNew={() => setModal('new')} onOpen={() => void open()} onSave={() => void save()} />}
-      <Canvas studio={studio} device={device} preview={preview} />
+      <Canvas ref={canvasRef} studio={studio} device={device} preview={preview} />
       {!preview && rightOpen && <Inspector studio={studio} />}
     </div>
     <div className={`status-toast ${studio.notice ? 'visible' : ''}`} role="status" aria-live="polite"><CheckCircle2 size={15} /><span>{studio.notice}</span></div>
