@@ -10,8 +10,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const scratch = await mkdtemp(path.join(tmpdir(), 'reisian-native-smoke-'));
 const env = { ...process.env, REISIAN_DEV_URL: '' };
 delete env.ELECTRON_RUN_AS_NODE;
-const args = [root];
-if (process.env.REISIAN_ELECTRON_HEADLESS === '1') args.unshift('--ozone-platform=headless', '--disable-gpu');
+const executablePath = process.env.REISIAN_ELECTRON_EXECUTABLE;
+const args = executablePath ? [] : [root];
+if (process.env.REISIAN_ELECTRON_HEADLESS === '1') args.unshift('--ozone-platform=headless');
+if (process.env.REISIAN_ELECTRON_SOFTWARE_GL === '1') args.unshift('--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader');
 if (process.env.REISIAN_ELECTRON_NO_SANDBOX === '1') {
   console.warn('TEST ENVIRONMENT ONLY: Chromium OS sandbox disabled explicitly; production settings are still checked.');
   args.unshift('--no-sandbox');
@@ -21,7 +23,7 @@ const checks = [];
 const pass = label => { checks.push(label); console.log(`PASS ${label}`); };
 try {
   await readFile(path.join(root, 'dist/index.html'));
-  application = await electron.launch({ args, cwd: root, env, timeout: 30000 });
+  application = await electron.launch({ args, executablePath, cwd: root, env, timeout: 30000 });
   const page = await application.firstWindow();
   await page.waitForFunction(() => typeof window.reisian?.saveProject === 'function');
   const isolation = await page.evaluate(() => ({
@@ -35,6 +37,19 @@ try {
   });
   assert.deepEqual(preferences, { sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false });
   pass('isolated renderer, sandbox preference and narrow preload bridge');
+
+  if (process.env.REISIAN_ELECTRON_SOFTWARE_GL === '1') {
+    const pixel = await page.evaluate(() => {
+      const gl = document.createElement('canvas').getContext('webgl');
+      if (!gl) return null;
+      gl.clearColor(1, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      const color = new Uint8Array(4);
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, color);
+      return Array.from(color);
+    });
+    assert.deepEqual(pixel, [255, 0, 0, 255]);
+    pass('WebGL context renders a verified pixel using software graphics');
+  }
 
   // Stub only native picker results in the main process. The actual IPC, validation,
   // filesystem transaction and ZIP generation run unchanged.
