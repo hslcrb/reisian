@@ -1,11 +1,15 @@
-import type { Project, Section, SectionKind } from './types';
+import type { Project, Section, SectionItem, SectionKind } from './types';
 
 const kinds: SectionKind[] = ['hero', 'text', 'image', 'gallery', 'scene', 'cards', 'quote', 'contact', 'spacer'];
 export const uid = (prefix = 'item') => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`}`;
+export function createSectionItem(kind: 'cards' | 'gallery' = 'cards', index = 0): SectionItem {
+  const i = index % 3;
+  return { id: uid('item'), title: kind === 'gallery' ? ['Vessel / No. 01', 'Still / No. 02', 'Orbit / No. 03'][i] : ['Rooted in curiosity', 'Shaped with care', 'Made for living'][i], body: kind === 'gallery' ? ['A study in organic form.', 'A quiet moment, made tangible.', 'An exploration of endless movement.'][i] : ['Every good idea begins with a thoughtful question.', 'Considered details, honest materials, lasting impressions.', 'Purposeful experiences for everyday moments.'][i], image: '', imageAlt: '', href: '' };
+}
 export function createSection(kind: SectionKind): Section {
   if (!kinds.includes(kind)) throw new Error('Choose a supported section type.');
   const titles: Record<SectionKind, string> = { hero: 'Objects for a slower world.', text: 'Less, but with meaning.', image: 'A different perspective.', gallery: 'The collected works.', scene: 'A new dimension.', cards: 'Considered from every angle.', quote: 'Good things take their own time.', contact: 'Let’s make something meaningful.', spacer: '' };
-  return { id: uid('section'), kind, name: kind[0].toUpperCase() + kind.slice(1), eyebrow: kind === 'hero' ? 'Independent design studio · Est. 2024' : 'A considered approach', title: titles[kind], body: 'We create thoughtful objects and digital experiences. Rooted in curiosity, shaped by care, and made to be lived with.', buttonLabel: kind === 'hero' ? 'Explore our world' : kind === 'contact' ? 'Start a conversation' : '', buttonHref: kind === 'contact' ? 'mailto:hello@example.com' : '#main', image: '', imageAlt: '', background: '', color: '', align: 'left', padding: kind === 'hero' ? 96 : 80, columns: 3, motion: 'none', scene: { shape: 'torus', color: '#9AAE91', background: '#E5E8DD', speed: 0.35, scale: 1, wireframe: false }, hidden: false };
+  return { id: uid('section'), kind, name: kind[0].toUpperCase() + kind.slice(1), eyebrow: kind === 'hero' ? 'Independent design studio · Est. 2024' : 'A considered approach', title: titles[kind], body: 'We create thoughtful objects and digital experiences. Rooted in curiosity, shaped by care, and made to be lived with.', buttonLabel: kind === 'hero' ? 'Explore our world' : kind === 'contact' ? 'Start a conversation' : '', buttonHref: kind === 'contact' ? 'mailto:hello@example.com' : '#main', image: '', imageAlt: '', background: '', color: '', align: 'left', padding: kind === 'hero' ? 96 : 80, columns: 3, motion: 'none', scene: { shape: 'torus', color: '#9AAE91', background: '#E5E8DD', speed: 0.35, scale: 1, wireframe: false }, hidden: false, ...((kind === 'cards' || kind === 'gallery') ? {items: Array.from({length:3}, (_,i)=>createSectionItem(kind,i))} : {}) };
 }
 export function createProject(template: 'atelier' | 'portfolio' | 'blank' = 'atelier'): Project {
   const hero = createSection('hero');
@@ -48,7 +52,20 @@ export function parseProject(text: string): Project {
       const p = `${path}.sections[${si}]`; object(s, p); object(s.scene, `${p}.scene`);
       const href = str(s.buttonHref, `${p}.buttonHref`, 2000); if (!safeHref(href)) fail(`${p}.buttonHref`, 'must be a safe web, email, telephone, page or anchor link');
       const image = str(s.image, `${p}.image`, 8_000_000); if (!safeImage(image)) fail(`${p}.image`, 'must be an embedded PNG, JPEG, WebP or GIF');
-      return { id: id(s.id, `${p}.id`), kind: enumeration(s.kind, kinds, `${p}.kind`), name: str(s.name, `${p}.name`, 120), eyebrow: str(s.eyebrow, `${p}.eyebrow`, 300), title: str(s.title, `${p}.title`, 2000), body: str(s.body, `${p}.body`, 20000), buttonLabel: str(s.buttonLabel, `${p}.buttonLabel`, 200), buttonHref: href, image, imageAlt: str(s.imageAlt, `${p}.imageAlt`, 1000), background: color(s.background, `${p}.background`, true), color: color(s.color, `${p}.color`, true), align: enumeration(s.align, ['left', 'center', 'right'], `${p}.align`), padding: number(s.padding, 0, 240, `${p}.padding`), columns: [1,2,3].includes(s.columns) ? s.columns : fail(`${p}.columns`, 'must be 1, 2 or 3'), motion: enumeration(s.motion, ['none','reveal','parallax','rotate'], `${p}.motion`), hidden: bool(s.hidden, `${p}.hidden`), scene: { shape: enumeration(s.scene.shape, ['torus','sphere','wave','knot'], `${p}.scene.shape`), color: color(s.scene.color, `${p}.scene.color`), background: color(s.scene.background, `${p}.scene.background`), speed: number(s.scene.speed, 0, 3, `${p}.scene.speed`), scale: number(s.scene.scale, 0.3, 2.5, `${p}.scene.scale`), wireframe: bool(s.scene.wireframe, `${p}.scene.wireframe`) } };
+      let items: SectionItem[] | undefined;
+      if (s.items !== undefined) {
+        if (!Array.isArray(s.items) || s.items.length > 12) fail(`${p}.items`, 'must contain at most 12 items');
+        const itemIds = new Set<string>();
+        items = s.items.map((item: any, ii: number): SectionItem => {
+          const ip = `${p}.items[${ii}]`; object(item, ip);
+          const itemId = str(item.id, `${ip}.id`, 100);
+          if (!/^[A-Za-z0-9_-]+$/.test(itemId) || itemIds.has(itemId)) fail(`${ip}.id`, 'must be a unique item identifier within its section'); itemIds.add(itemId);
+          const image = str(item.image, `${ip}.image`, 8_000_000); if (!safeImage(image)) fail(`${ip}.image`, 'must be an embedded raster image');
+          const href = str(item.href, `${ip}.href`, 2000); if (!safeHref(href)) fail(`${ip}.href`, 'must be a safe link');
+          return { id: itemId, title: str(item.title, `${ip}.title`, 2000), body: str(item.body, `${ip}.body`, 10000), image, imageAlt: str(item.imageAlt, `${ip}.imageAlt`, 1000), href };
+        });
+      }
+      return { ...(items !== undefined ? {items} : {}), id: id(s.id, `${p}.id`), kind: enumeration(s.kind, kinds, `${p}.kind`), name: str(s.name, `${p}.name`, 120), eyebrow: str(s.eyebrow, `${p}.eyebrow`, 300), title: str(s.title, `${p}.title`, 2000), body: str(s.body, `${p}.body`, 20000), buttonLabel: str(s.buttonLabel, `${p}.buttonLabel`, 200), buttonHref: href, image, imageAlt: str(s.imageAlt, `${p}.imageAlt`, 1000), background: color(s.background, `${p}.background`, true), color: color(s.color, `${p}.color`, true), align: enumeration(s.align, ['left', 'center', 'right'], `${p}.align`), padding: number(s.padding, 0, 240, `${p}.padding`), columns: [1,2,3].includes(s.columns) ? s.columns : fail(`${p}.columns`, 'must be 1, 2 or 3'), motion: enumeration(s.motion, ['none','reveal','parallax','rotate'], `${p}.motion`), hidden: bool(s.hidden, `${p}.hidden`), scene: { shape: enumeration(s.scene.shape, ['torus','sphere','wave','knot'], `${p}.scene.shape`), color: color(s.scene.color, `${p}.scene.color`), background: color(s.scene.background, `${p}.scene.background`), speed: number(s.scene.speed, 0, 3, `${p}.scene.speed`), scale: number(s.scene.scale, 0.3, 2.5, `${p}.scene.scale`), wireframe: bool(s.scene.wireframe, `${p}.scene.wireframe`) } };
     }) };
   }) };
   if (Number.isNaN(Date.parse(project.updatedAt))) fail('updatedAt', 'must be a valid date');

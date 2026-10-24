@@ -28,6 +28,16 @@ describe('portable project format', () => {
       expect(() => parseProject(JSON.stringify(p))).toThrow(/project/i);
     }
   });
+  it('validates editable collection items and preserves legacy sections', () => {
+    const p = createProject(); const gallery=p.pages[0].sections.find(s=>s.kind==='gallery')!;
+    expect(gallery.items).toHaveLength(3);
+    gallery.items![0].title='A personal work';
+    expect(parseProject(JSON.stringify(p)).pages[0].sections.find(s=>s.kind==='gallery')!.items![0].title).toBe('A personal work');
+    gallery.items![1].id=gallery.items![0].id;
+    expect(()=>parseProject(JSON.stringify(p))).toThrow(/item/i);
+    delete gallery.items;
+    expect(()=>parseProject(JSON.stringify(p))).not.toThrow();
+  });
   it('rejects invalid versions and missing fields with understandable errors', () => {
     expect(() => parseProject('{')).toThrow(/JSON/i);
     expect(() => parseProject('{"schemaVersion":3}')).toThrow(/version/i);
