@@ -1,5 +1,9 @@
 import type { Project, Section, SectionItem, SectionKind } from './types';
 
+export const MAX_PROJECT_BYTES = 10 * 1024 * 1024;
+const assertProjectSize = (text: string) => {
+  if (typeof text !== 'string' || text.length > MAX_PROJECT_BYTES || new TextEncoder().encode(text).byteLength > MAX_PROJECT_BYTES) throw new Error('Project is too large. Keep project files below 10 MiB.');
+};
 const kinds: SectionKind[] = ['hero', 'text', 'image', 'gallery', 'scene', 'cards', 'quote', 'contact', 'spacer'];
 export const uid = (prefix = 'item') => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`}`;
 export function createSectionItem(kind: 'cards' | 'gallery' = 'cards', index = 0): SectionItem {
@@ -28,7 +32,7 @@ export function safeHref(value: string): boolean {
 export const safeImage = (value: string) => value === '' || (value.length <= 8_000_000 && /^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(value));
 export const safeColor = (value: string) => /^#[a-fA-F0-9]{6}$/.test(value);
 export function parseProject(text: string): Project {
-  if (typeof text !== 'string' || text.length > 30_000_000) throw new Error('Project is too large. Keep project files below 30 MB.');
+  assertProjectSize(text);
   let raw: any;
   try { raw = JSON.parse(text); } catch { throw new Error('This project is not valid JSON. Choose a .reisian project file.'); }
   const fail = (path: string, reason: string): never => { throw new Error(`Invalid project: ${path} ${reason}.`); };
@@ -71,5 +75,9 @@ export function parseProject(text: string): Project {
   if (Number.isNaN(Date.parse(project.updatedAt))) fail('updatedAt', 'must be a valid date');
   return project;
 }
-export const serializeProject = (project: Project): string => JSON.stringify(parseProject(JSON.stringify(project)), null, 2);
+export const serializeProject = (project: Project): string => {
+  const text = JSON.stringify(parseProject(JSON.stringify(project)), null, 2);
+  assertProjectSize(text);
+  return text;
+};
 export const cloneProject = (project: Project): Project => parseProject(JSON.stringify(project));

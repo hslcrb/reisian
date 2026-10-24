@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createProject, createSection, parseProject, serializeProject } from '../src/core/model';
+import { createProject, createSection, parseProject, serializeProject, MAX_PROJECT_BYTES } from '../src/core/model';
 
 describe('portable project format', () => {
   it('round trips every template without losing content', () => {
@@ -37,6 +37,16 @@ describe('portable project format', () => {
     expect(()=>parseProject(JSON.stringify(p))).toThrow(/item/i);
     delete gallery.items;
     expect(()=>parseProject(JSON.stringify(p))).not.toThrow();
+  });
+  it('uses one UTF-8 byte limit for imports and formatted saves', () => {
+    expect(()=>parseProject(JSON.stringify({text:'한'.repeat(Math.ceil(MAX_PROJECT_BYTES/3))}))).toThrow(/too large/i);
+    const p=createProject('blank');p.pages[0].sections=[createSection('image'),createSection('image')];
+    p.pages[0].sections[0].image='data:image/png;base64,'+'A'.repeat(6_000_000);
+    p.pages[0].sections[1].image='data:image/png;base64,';
+    const remaining=MAX_PROJECT_BYTES-new TextEncoder().encode(JSON.stringify(p)).length-4;
+    p.pages[0].sections[1].image+='A'.repeat(remaining);
+    expect(()=>parseProject(JSON.stringify(p))).not.toThrow();
+    expect(()=>serializeProject(p)).toThrow(/too large/i);
   });
   it('rejects invalid versions and missing fields with understandable errors', () => {
     expect(() => parseProject('{')).toThrow(/JSON/i);
