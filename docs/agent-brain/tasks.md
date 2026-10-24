@@ -11,8 +11,18 @@
 - [x] Inspect repository and access permissions.
 - [x] Create chatgpt/reisian/integration through GitHub integration.
 - [x] Document design, implementation plan and contributor rules.
-- [ ] Core/export implementation and review.
-- [ ] Electron implementation and review.
-- [ ] Brand/open-source implementation and review.
-- [ ] Editor implementation and user-flow verification.
-- [ ] Integrate, publish evidence, final non-fast-forward merge.
+- [x] Core/export implementation and review.
+- [x] Electron implementation and review.
+- [x] Brand/open-source implementation and review.
+- [x] Editor implementation and user-flow verification.
+- [x] Integrate workstreams and verify actual production editor and packaged Linux behavior.
+- [x] Final scoped reviews and real desktop/scene/mobile screenshots.
+- [x] Record final artifact sizes/hashes and preserve the exact native evidence JSON.
+- [ ] Publish final delivery evidence and verify the remote head.
+- [ ] Complete editor → integration → main two-parent merges and verify remote heads.
+
+## Delivery checkpoint
+
+The root owner coordinated engine, desktop, identity, editor_review and final_review agents. Observed final source checks: formatting/type checking/build passed; **51 unit tests in 9 files**, **8 production Playwright tests**, **8 production native checks** and **8 packaged Linux checks** passed. Native smoke used an explicit root-container OS sandbox exception and software graphics; this does not establish OS sandbox enforcement or Windows runtime readiness. Windows portable packaging succeeded as an unsigned cross-build, with the final embedded payload and icons verified; Windows runtime remains untested and macOS is not built.
+
+Identity #1, desktop #2, engine #4 and integration-to-editor #5 were merged at this checkpoint. Editor #3 and final integration-to-main publication remain owner steps. For detailed evidence and current caveats, see [the delivery report](2026-10-24-delivery.md). Historical workstream reports retain their intermediate results and are not substitutes for the final package evidence.
